@@ -1,7 +1,7 @@
 {
-  "name": "@metamask/test-dapp",
+  "name": "test-dapp-eip-712",
   "version": "5.2.1",
-  "description": "A simple dapp used in MetaMask e2e tests.",
+  "description": "Test dapp for EIP-712 chainId validation",
   "engines": {
     "node": ">= 12.0.0"
   },
