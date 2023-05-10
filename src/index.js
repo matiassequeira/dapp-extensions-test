@@ -28,10 +28,14 @@ const getAccountsResults = document.getElementById('getAccountsResult');
 
 const signTypedDataV4 = document.getElementById('signTypedDataV4');
 const signTypedDataV4Result = document.getElementById('signTypedDataV4Result');
-const signTypedDataV4Verify = document.getElementById('signTypedDataV4Verify');
-const signTypedDataV4VerifyResult = document.getElementById(
-  'signTypedDataV4VerifyResult',
-);
+
+function convertUtf8ToHex(myString){
+  return Buffer.from(myString).toString('hex')
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 const initialize = async () => {
   
@@ -82,6 +86,9 @@ const initialize = async () => {
   getAccountsButton.onclick = async () => {
     try {
       // console.log("requesting accounts")
+      onboardButton.disabled = false;
+      signTypedDataV4.disabled = false;
+      
       // console.error("requesting accounts")
       const _accounts = await ethereum.request({
         method: 'eth_accounts',
@@ -100,145 +107,83 @@ const initialize = async () => {
   signTypedDataV4.onclick = async () => {
     const networkId = parseInt(networkDiv.innerHTML, 10);
     const chainId = parseInt(chainIdDiv.innerHTML, 16) || networkId;
-    const msgParams = {
-      domain: {
-        chainId: '111111',
-        name: 'Ether Mail',
-        verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
-        version: '1',
-      },
-      message: {
-        contents: 'Hello, Bob!',
-        from: {
-          name: 'Cow',
-          wallets: [
-            '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
-            '0xDeaDbeefdEAdbeefdEadbEEFdeadbeEFdEaDbeeF',
+    const address = accountsDiv.innerHTML
+
+    const jsonStr = `{
+      "types": {
+          "EIP712Domain": [
+              {
+                  "name": "name",
+                  "type": "string"
+              },
+              {
+                  "name": "version",
+                  "type": "string"
+              },
+              {
+                  "name": "verifyingContract",
+                  "type": "address"
+              },
+              {
+                  "name": "chainId",
+                  "type": "uint256"
+              }
           ],
-        },
-        to: [
-          {
-            name: 'Bob',
-            wallets: [
-              '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
-              '0xB0BdaBea57B0BDABeA57b0bdABEA57b0BDabEa57',
-              '0xB0B0b0b0b0b0B000000000000000000000000000',
-            ],
-          },
-        ],
+          "RelayRequest": [
+              {
+                  "name": "target",
+                  "type": "address"
+              },
+              {
+                  "name": "message",
+                  "type": "string"
+              }
+          ]
       },
-      primaryType: 'Mail',
-      types: {
-        EIP712Domain: [
-          { name: 'name', type: 'string' },
-          { name: 'version', type: 'string' },
-          { name: 'chainId', type: 'uint256' },
-          { name: 'verifyingContract', type: 'address' },
-        ],
-        Group: [
-          { name: 'name', type: 'string' },
-          { name: 'members', type: 'Person[]' },
-        ],
-        Mail: [
-          { name: 'from', type: 'Person' },
-          { name: 'to', type: 'Person[]' },
-          { name: 'contents', type: 'string' },
-        ],
-        Person: [
-          { name: 'name', type: 'string' },
-          { name: 'wallets', type: 'address[]' },
-        ],
+      "domain": {
+          "name": "EIP-712 Test - Relayed Transaction",
+          "version": "1",
+          "chainId": 1,
+          "verifyingContract": "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
       },
+      "primaryType": "RelayRequest",
+      "message": {
+      }
+    }`
+
+    const msgParams = JSON.parse(jsonStr);
+    
+    // ************ INSERT CODE SNIPPET HERE *************
+    
+    // ************ INSERT CODE SNIPPET HERE *************
+    
+    msgParams["message"]["target"] = '0x0101010101010101010101010101010101010101'
+    msgParams["message"]["message"] = 'Howdy'
+
+
+    let request = {
+      id: 1,
+      jsonrpc: "2.0",
+      method: "eth_signTypedData_v4",
+      params: [
+        address,
+        JSON.stringify(msgParams)
+
+      ],
     };
+
     try {
-      const from = accounts[0];
-      const sign = await ethereum.request({
-        method: 'eth_signTypedData_v4',
-        params: [from, JSON.stringify(msgParams)],
+      const result = await ethereum.request({
+        method: request.method,
+        params: request.params,
       });
-      signTypedDataV4Result.innerHTML = sign;
-      signTypedDataV4Verify.disabled = false;
-    } catch (err) {
-      console.error("DAPP: ", err);
+      console.log(request.method, " result: ",result);
+      signTypedDataV4Result.innerHTML = result
+    } catch(err) {
+      console.log(request.method, " error: ", err);
       signTypedDataV4Result.innerHTML = `Error: ${err.message}`;
     }
-  };
-
-  /**
-   *  Sign Typed Data V4 Verification
-   */
-  signTypedDataV4Verify.onclick = async () => {
-    const networkId = parseInt(networkDiv.innerHTML, 10);
-    const chainId = parseInt(chainIdDiv.innerHTML, 16) || networkId;
-    const msgParams = {
-      domain: {
-        chainId: '111111',
-        name: 'Ether Mail',
-        verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
-        version: '1',
-      },
-      message: {
-        contents: 'Hello, Bob!',
-        from: {
-          name: 'Cow',
-          wallets: [
-            '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
-            '0xDeaDbeefdEAdbeefdEadbEEFdeadbeEFdEaDbeeF',
-          ],
-        },
-        to: [
-          {
-            name: 'Bob',
-            wallets: [
-              '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
-              '0xB0BdaBea57B0BDABeA57b0bdABEA57b0BDabEa57',
-              '0xB0B0b0b0b0b0B000000000000000000000000000',
-            ],
-          },
-        ],
-      },
-      primaryType: 'Mail',
-      types: {
-        EIP712Domain: [
-          { name: 'name', type: 'string' },
-          { name: 'version', type: 'string' },
-          { name: 'chainId', type: 'uint256' },
-          { name: 'verifyingContract', type: 'address' },
-        ],
-        Group: [
-          { name: 'name', type: 'string' },
-          { name: 'members', type: 'Person[]' },
-        ],
-        Mail: [
-          { name: 'from', type: 'Person' },
-          { name: 'to', type: 'Person[]' },
-          { name: 'contents', type: 'string' },
-        ],
-        Person: [
-          { name: 'name', type: 'string' },
-          { name: 'wallets', type: 'address[]' },
-        ],
-      },
-    };
-    try {
-      const from = accounts[0];
-      const sign = signTypedDataV4Result.innerHTML;
-      const recoveredAddr = recoverTypedSignatureV4({
-        data: msgParams,
-        sig: sign,
-      });
-      if (toChecksumAddress(recoveredAddr) === toChecksumAddress(from)) {
-        console.log(`Successfully verified signer as ${recoveredAddr}`);
-        signTypedDataV4VerifyResult.innerHTML = recoveredAddr;
-      } else {
-        console.log(
-          `Failed to verify signer when comparing ${recoveredAddr} to ${from}`,
-        );
-      }
-    } catch (err) {
-      console.error("DAPP: ", err);
-      signTypedDataV4VerifyResult.innerHTML = `Error: ${err.message}`;
-    }
+    
   };
 
   function handleNewAccounts(newAccounts) {

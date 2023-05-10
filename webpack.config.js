@@ -17,6 +17,7 @@ module.exports = {
     contentBase: DIST,
     port: 9011,
     writeToDisk: true,
+    host: '0.0.0.0',
   },
   plugins: [
     new CleanWebpackPlugin({ cleanStaleWebpackAssets: false }),
