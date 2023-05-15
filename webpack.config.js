@@ -18,6 +18,7 @@ module.exports = {
     port: 9011,
     writeToDisk: true,
     host: '0.0.0.0',
+    disableHostCheck: true,
   },
   plugins: [
     new CleanWebpackPlugin({ cleanStaleWebpackAssets: false }),
